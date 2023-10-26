@@ -1,10 +1,10 @@
 ﻿from dataclasses import dataclass
-from tkinter import SE
 from PyQt5 import QtCore, QtGui
-import airsim
 from PyQt5.QtWidgets import QBoxLayout, QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QApplication
 from PyQt5.QtCore import *
 import sys
+
+import CarController
 
 
 # mobile configuration
@@ -27,6 +27,12 @@ class AirDroneClientWindow(QWidget):
     label_pos_x = QLabel()
     label_pos_y = QLabel()
     label_pos_z = QLabel()
+    label_speed_l = QLabel()
+    
+    label_rot_x = QLabel()
+    label_rot_y = QLabel()
+    label_rot_z = QLabel()
+    label_speed_a = QLabel()
     
     refreshinfo = QTimer()
     
@@ -48,25 +54,48 @@ class AirDroneClientWindow(QWidget):
         layout_b.addWidget(self.button_r)
         layout_b.setSpacing(40)
         
-        self.button_f.clicked.connect(self.forward)
-        self.button_b.clicked.connect(self.backward)
-        self.button_l.clicked.connect(self.left)
-        self.button_r.clicked.connect(self.right)
+        self.button_f.pressed.connect(self.forward)
+        self.button_b.pressed.connect(self.backward)
+        self.button_l.pressed.connect(self.left)
+        self.button_r.pressed.connect(self.right)
+        
+        self.button_f.released.connect(self.stop)
+        self.button_b.released.connect(self.stop)
+        self.button_l.released.connect(self.stop)
+        self.button_r.released.connect(self.stop)
 
         # display widgets
-        layout_w = QVBoxLayout()
-        layout_w.addWidget(self.label_pos_x)
-        layout_w.addWidget(self.label_pos_y)
-        layout_w.addWidget(self.label_pos_z)
+        layout_p = QVBoxLayout()
+        layout_p.addWidget(self.label_pos_x)
+        layout_p.addWidget(self.label_pos_y)
+        layout_p.addWidget(self.label_pos_z)
+        layout_p.addWidget(self.label_speed_l)
+        
+        layout_r = QVBoxLayout()
+        layout_r.addWidget(self.label_rot_x)
+        layout_r.addWidget(self.label_rot_y)
+        layout_r.addWidget(self.label_rot_z)
+        layout_r.addWidget(self.label_speed_a)
+        
+        widget_r = QWidget()
+        widget_r.setLayout(layout_r)
+        widget_p = QWidget()
+        widget_p.setLayout(layout_p)
+        
+        layout_pr = QHBoxLayout()
+        layout_pr.addWidget(widget_p)
+        layout_pr.addWidget(widget_r)
         
         # total layout
         layout_t = QVBoxLayout()
-        widget_w = QWidget()
-        widget_w.setLayout(layout_w)
         widget_b = QWidget()
         widget_b.setLayout(layout_b)
-        layout_t.addWidget(widget_w)
+        widget_pr = QWidget()
+        widget_pr.setLayout(layout_pr)
+        
+        layout_t.addWidget(widget_pr)
         layout_t.addWidget(widget_b)
+        
         self.setLayout(layout_t)
         
         # auto refresh information
@@ -77,19 +106,30 @@ class AirDroneClientWindow(QWidget):
 
 # display & refresh information
     def setInfo(self):
-        self.label_pos_x.setText("position x: ")
-        self.label_pos_y.setText("position y: ")
-        self.label_pos_z.setText("position z: ")
+        self.label_pos_x.setText("position x: " + str(CarController.carcontrol.GetCarPose().pos_x))
+        self.label_pos_y.setText("position y: " + str(CarController.carcontrol.GetCarPose().pos_y))
+        self.label_pos_z.setText("position z: " + str(CarController.carcontrol.GetCarPose().pos_z))
+        
+        self.label_rot_x.setText("Rotation x: " + str(CarController.carcontrol.GetCarPose().rot_x))
+        self.label_rot_y.setText("Rotation y: " + str(CarController.carcontrol.GetCarPose().rot_y))
+        self.label_rot_z.setText("Rotation z: " + str(CarController.carcontrol.GetCarPose().rot_z))
+        
+        self.label_speed_l.setText("Linear Speed: "+ str(CarController.carcontrol.GetCarPose().speed_l))
+        self.label_speed_a.setText("Angle Speed: "+ str(CarController.carcontrol.GetCarPose().speed_a))
+       
 
 # move function
     def forward(self):
-        print(veh.acc)
+        CarController.carcontrol.GoForward(veh.acc)
     def backward(self):
-        print(veh.acc)
+        pass
     def left(self):
-        print(veh.acc)
+        CarController.carcontrol.Steer(veh.acc, -1)
     def right(self):
-        print(veh.acc)
+        CarController.carcontrol.Steer(veh.acc, 1)
+
+    def stop(self):
+        CarController.carcontrol.Stop()
         
 window = AirDroneClientWindow()
 window.initUI()

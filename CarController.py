@@ -1,5 +1,21 @@
+from dataclasses import dataclass
 import airsim
 import time
+
+
+@dataclass
+class Carinfo():
+    speed_a = 0
+    speed_l = 0
+    
+    pos_x = 0
+    pos_y = 0
+    pos_z = 0
+    
+    rot_x = 0
+    rot_y = 0
+    rot_z = 0
+    
 
 class CarController():
     def __init__(self):
@@ -7,39 +23,44 @@ class CarController():
         self.client = airsim.CarClient()
         self.client.confirmConnection()
         self.client.enableApiControl(True)
-        print("API Control enabled: %s" % self.client.isApiControlEnabled())
-        self.car_controls = airsim.CarControls()
-        # self.ConnectionState = True
-        self.car_state = airsim.CarState()
-
-    """
-    def ConformConnection(self):
-        if self.ping():
-            print("Connected!")
-        else:
-            print("Ping returned false!")
-"""
+        self.car_controls = airsim.CarControls()  
 
     def GoForward(self, v):
         self.car_controls.throttle = v
         self.car_controls.steering = 0
         self.client.setCarControls(self.car_controls)
-        print("Go Forward")
-        time.sleep(3)
 
     def Steer(self, v, steering):
         self.car_controls.throttle = v
         self.car_controls.steering = steering
         self.client.setCarControls(self.car_controls)
-        print("Steer")
 
+    def Stop(self):
+        self.car_controls.throttle = 0
+        self.car_controls.steering = 0
+        self.client.setCarControls(self.car_controls)
+        
     def GetCarPose(self):
-        # print(self.car_state)
-        print(airsim.CarState)
+        position = self.client.simGetVehiclePose().position
+        rotation = self.client.simGetVehiclePose().orientation
 
-
-if __name__ == "__main__":
-    Car = CarController()
-    Car.Steer(0.5,-1)
-    time.sleep(5)
-    Car.GetCarPose()
+        speed_a = self.client.getCarState().speed
+        speed_l = self.client.getCarState().speed
+        
+        carinfo = Carinfo()
+        
+        carinfo.rot_x = rotation.x_val
+        carinfo.rot_y = rotation.y_val
+        carinfo.rot_z = rotation.z_val
+        
+        carinfo.pos_x = position.x_val
+        carinfo.pos_y = position.y_val
+        carinfo.pos_z = position.z_val
+        
+        carinfo.speed_a = speed_a
+        carinfo.speed_l = speed_l
+        
+        return carinfo
+        
+        
+carcontrol = CarController()
