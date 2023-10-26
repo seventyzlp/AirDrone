@@ -55,12 +55,12 @@ class AirDroneClientWindow(QWidget):
         layout_b.setSpacing(40)
         
         self.button_f.pressed.connect(self.forward)
-        self.button_b.pressed.connect(self.backward)
+        self.button_b.pressed.connect(self.backwardstart)
         self.button_l.pressed.connect(self.left)
         self.button_r.pressed.connect(self.right)
         
         self.button_f.released.connect(self.stop)
-        self.button_b.released.connect(self.stop)
+        self.button_b.released.connect(self.backwardend)
         self.button_l.released.connect(self.stop)
         self.button_r.released.connect(self.stop)
 
@@ -121,8 +121,10 @@ class AirDroneClientWindow(QWidget):
 # move function
     def forward(self):
         CarController.carcontrol.GoForward(veh.acc)
-    def backward(self):
-        pass
+    def backwardstart(self):
+        CarController.carcontrol.GoBackwardStart(veh.acc)
+    def backwardend(self):
+        CarController.carcontrol.GoBackwardEnd()
     def left(self):
         CarController.carcontrol.Steer(veh.acc, -1)
     def right(self):

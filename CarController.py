@@ -30,6 +30,20 @@ class CarController():
         self.car_controls.steering = 0
         self.client.setCarControls(self.car_controls)
 
+    def GoBackwardStart(self, v):
+        self.car_controls.throttle = v
+        self.car_controls.is_manual_gear = True
+        self.car_controls.manual_gear = -1
+        self.car_controls.steering = 0
+        self.client.setCarControls(self.car_controls)
+
+    def GoBackwardEnd(self):
+        self.car_controls.throttle = 0
+        self.car_controls.steering = 0
+        self.car_controls.is_manual_gear = False
+        self.car_controls.manual_gear = 0
+        self.client.setCarControls(self.car_controls)
+
     def Steer(self, v, steering):
         self.car_controls.throttle = v
         self.car_controls.steering = steering
