@@ -107,3 +107,10 @@ if __name__ == '__main__':
     # myDrone.DroneMoveByTime(3,3,-5,2)
     # myDrone.Landed()
     # print(myDrone.client.getMultirotorState().landed_state)
+    def DroneMove(self,vx,vy,vz):
+        self.client.moveByVelocityAsync(vx,vy,vz,3)
+
+
+
+dronecontrol = Drone()
+
