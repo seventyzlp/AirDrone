@@ -161,7 +161,7 @@ class AirDroneClientWindow(QWidget):
             self.label_rot_y.setText("Rotation y: " + str(DroneController.dronecontrol.GetState().ori_y))
             self.label_rot_z.setText("Rotation z: " + str(DroneController.dronecontrol.GetState().ori_z))
 
-            self.label_speed_l.setText("Linear Speed: " + str(DroneController.dronecontrol.GetState().l_v_x))
+            self.label_speed_l.setText("Linear Speed: " + str(DroneController.dronecontrol.GetState().linear_speed))
             self.label_speed_a.setText("Angle Speed: " + str(DroneController.dronecontrol.GetState().a_v_x))
 
     # move function

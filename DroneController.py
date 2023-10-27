@@ -86,7 +86,7 @@ class Drone():
         State.yaw = self.client.getMultirotorState().rc_data.yaw
         State.pitch = self.client.getMultirotorState().rc_data.pitch
 
-        State.linear_speed = math.sqrt(pow(State.l_v_x)+pow(State.l_v_y)+pow(State.l_v_z))
+        State.linear_speed = math.sqrt(pow(State.l_v_x,2)+pow(State.l_v_y,2)+pow(State.l_v_z,2))
 
         return State
     def Hover(self):
