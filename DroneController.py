@@ -1,6 +1,6 @@
 import airsim
 import time
-
+import math
 
 class DroneInfo():
     gps_pos_altitude = 0
@@ -25,6 +25,8 @@ class DroneInfo():
     roll = 0
     yaw = 0
     pitch = 0
+
+    linear_speed = 0
 
 
 class Drone():
@@ -83,6 +85,8 @@ class Drone():
         State.roll = self.client.getMultirotorState().rc_data.roll
         State.yaw = self.client.getMultirotorState().rc_data.yaw
         State.pitch = self.client.getMultirotorState().rc_data.pitch
+
+        State.linear_speed = math.sqrt(pow(State.l_v_x)+pow(State.l_v_y)+pow(State.l_v_z))
 
         return State
     def Hover(self):
