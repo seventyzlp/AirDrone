@@ -153,38 +153,46 @@ class AirDroneClientWindow(QWidget):
             self.label_speed_l.setText("Linear Speed: " + str(CarController.carcontrol.GetCarPose().speed_l))
             self.label_speed_a.setText("Angle Speed: " + str(CarController.carcontrol.GetCarPose().speed_a))
         else:
-            pass
+            self.label_pos_x.setText("GPS Altitude: " + str(DroneController.dronecontrol.GetState().gps_pos_altitude))
+            self.label_pos_y.setText("GPS Latitude: " + str(DroneController.dronecontrol.GetState().gps_pos_latitude))
+            self.label_pos_z.setText("GPS Longitude: " + str(DroneController.dronecontrol.GetState().gps_pos_longitude))
+
+            self.label_rot_x.setText("Rotation W: " + str(DroneController.dronecontrol.GetState().ori_x))
+            self.label_rot_y.setText("Rotation y: " + str(DroneController.dronecontrol.GetState().ori_y))
+            self.label_rot_z.setText("Rotation z: " + str(DroneController.dronecontrol.GetState().ori_z))
+
+            self.label_speed_l.setText("Linear Speed: " + str(DroneController.dronecontrol.GetState().l_v_x))
+            self.label_speed_a.setText("Angle Speed: " + str(DroneController.dronecontrol.GetState().a_v_x))
 
     # move function
     def forward(self):
         if veh.vehicle_type == 'car':
             CarController.carcontrol.GoForward(veh.acc)
         else:
-            DroneController.dronecontrol.DroneMove(veh.acc, 0, 0)
+            DroneController.dronecontrol.DroneMoveByTime(veh.acc, 0, 0)
 
     def backward(self):
         if veh.vehicle_type == 'car':
             CarController.carcontrol.GoBackwardStart(veh.acc)
         else:
-            DroneController.dronecontrol.DroneMove(-veh.acc, 0, 0)
+            DroneController.dronecontrol.DroneMoveByTime(-veh.acc, 0, 0)
 
     def left(self):
         if veh.vehicle_type == 'car':
             CarController.carcontrol.Steer(veh.acc, -1)
         else:
-            DroneController.dronecontrol.DroneMove(0, -veh.acc, 0)
+            DroneController.dronecontrol.DroneMoveByTime(0, -veh.acc, 0)
 
     def right(self):
         if veh.vehicle_type == 'car':
             CarController.carcontrol.Steer(veh.acc, 1)
         else:
-            DroneController.dronecontrol.DroneMove(0, veh.acc, 0)
+            DroneController.dronecontrol.DroneMoveByTime(0, veh.acc, 0)
 
     def stop(self):
         if veh.vehicle_type == 'car':
             CarController.carcontrol.Stop()
         else:
-            # DroneController.dronecontrol.DroneMove(0, 0, 0)
             pass
 
     def backwardend(self):
@@ -194,10 +202,10 @@ class AirDroneClientWindow(QWidget):
             pass
 
     def up(self):
-        DroneController.dronecontrol.DroneMove(0, 0, veh.acc)
+        DroneController.dronecontrol.DroneMoveByTime(0, 0, -veh.acc)
 
     def down(self):
-        DroneController.dronecontrol.DroneMove(0, 0, -veh.acc)
+        DroneController.dronecontrol.DroneMoveByTime(0, 0, veh.acc)
 
 
 window = AirDroneClientWindow()
