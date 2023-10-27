@@ -1,6 +1,9 @@
 import airsim
 import time
 
+class DroneInfo():
+    speed_x = 0
+
 
 class Drone():
     def __init__(self):
@@ -10,20 +13,28 @@ class Drone():
         self.client.enableApiControl(True)
         self.client.armDisarm(True)
 
-    def isLanded(self):
+    def TakeOff(self):
         landed = self.client.getMultirotorState().landed_state
         if landed == airsim.LandedState.Landed:
-            print("taking off...")
             self.client.takeoffAsync().join()
+            print("take off")
         else:
-            print("already flying...")
             self.client.hoverAsync().join()
+            print("already flying")
 
-    def forward(self):
-        self.car_controls.throttle = 0.5
-        self.car_controls.steering = 0
+    def Landed(self):
+        landed = self.client.getMultirotorState().landed_state
+        if landed == airsim.LandedState.Landed:
+            print("already landed")
+        else:
+            self.client.landAsync().join()
 
-        print("Go Forward")
-        time.sleep(3)  # let car drive a bit
+    def DroneMove(self,vx,vy,vz):
+        self.client.moveByVelocityAsync(vx,vy,vz)
 
-    def
+
+
+if __name__ == '__main__':
+
+    myDrone = Drone()
+    myDrone.TakeOff()

@@ -132,7 +132,8 @@ class AirDroneClientWindow(QWidget):
 
     def stop(self):
         CarController.carcontrol.Stop()
-        
+
+
 window = AirDroneClientWindow()
 window.initUI()
 window.setInfo()
