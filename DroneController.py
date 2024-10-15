@@ -98,19 +98,18 @@ class Drone():
     def Reset(self):
         self.client.reset()
 
-
+    def SnowTeleport(self):
+        position = airsim.Vector3r(9.87236677 , -279.41862836, -22.81082173)
+        heading = airsim.utils.to_quaternion(0, 0, 0)
+        pose = airsim.Pose(position, heading)
+        self.client.simSetVehiclePose(pose, True)
+    def CloseAPI(self):
+        self.client.enableApiControl(False)
 
 
 if __name__ == '__main__':
     myDrone = Drone()
-    # myDrone.TakeOff()
-    # time.sleep(1)
-    # print(myDrone.GetState())
-    print(myDrone.client.getMultirotorState().landed_state)
-    # myDrone.Hover()
-    # myDrone.DroneMoveByTime(3,3,-5,2)
-    # myDrone.Landed()
-    # print(myDrone.client.getMultirotorState().landed_state)
+    myDrone.SnowTeleport()
 
 dronecontrol = Drone()
 

@@ -32,6 +32,9 @@ class AirDroneClientWindow(QWidget):
     button_up = QPushButton()
     button_down = QPushButton()
 
+    button_snow = QPushButton()
+    button_exit = QPushButton()
+
     label_pos_x = QLabel()
     label_pos_y = QLabel()
     label_pos_z = QLabel()
@@ -91,6 +94,17 @@ class AirDroneClientWindow(QWidget):
         self.button_up.clicked.connect(self.up)
         self.button_down.clicked.connect(self.down)
 
+        # teleport API
+        layout_tlp = QHBoxLayout()
+        self.button_snow.setText("SnowTeleport")
+        self.button_exit.setText("ExitApiControl")
+
+        layout_tlp.addWidget(self.button_snow)
+        layout_tlp.addWidget(self.button_exit)
+
+        self.button_snow.clicked.connect(self.TeleportSnow)
+        self.button_exit.clicked.connect(DroneController.dronecontrol.CloseAPI)
+
         # endregion
 
         # display widgets
@@ -124,11 +138,14 @@ class AirDroneClientWindow(QWidget):
         widget_pr.setLayout(layout_pr)
         widget_d = QWidget()
         widget_d.setLayout(layout_d)
+        widget_t = QWidget()
+        widget_t.setLayout(layout_tlp)
 
         layout_t.addWidget(widget_pr)
         layout_t.addStretch(1)
         layout_t.addWidget(widget_d)
         layout_t.addWidget(widget_b)
+        layout_t.addWidget(widget_t)
 
         self.setLayout(layout_t)
         # endregion
@@ -206,6 +223,9 @@ class AirDroneClientWindow(QWidget):
 
     def down(self):
         DroneController.dronecontrol.DroneMoveByTime(0, 0, veh.acc)
+
+    def TeleportSnow(self):
+        DroneController.dronecontrol.SnowTeleport()
 
 
 window = AirDroneClientWindow()
