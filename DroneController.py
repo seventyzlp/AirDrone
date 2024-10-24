@@ -1,6 +1,7 @@
 import airsim
 import time
 import math
+import keyboard
 
 class DroneInfo():
     gps_pos_altitude = 0
@@ -99,12 +100,78 @@ class Drone():
         self.client.reset()
 
     def SnowTeleport(self):
-        position = airsim.Vector3r(9.87236677 , -279.41862836, -22.81082173)
+        position = airsim.Vector3r(9.87236677 , -279.41862836, -22.81082173) # snow
+        # position = airsim.Vector3r(68.46729401 , 81.05318001, 60.85758088) # normal
         heading = airsim.utils.to_quaternion(0, 0, 0)
         pose = airsim.Pose(position, heading)
         self.client.simSetVehiclePose(pose, True)
     def CloseAPI(self):
         self.client.enableApiControl(False)
+
+    def KeyboardControl(self,x):
+        w = keyboard.KeyboardEvent('down', 28, 'w')             # 前进
+        s = keyboard.KeyboardEvent('down', 28, 's')             # 后退
+        a = keyboard.KeyboardEvent('down', 28, 'a')             # 左移
+        d = keyboard.KeyboardEvent('down', 28, 'd')             # 右移
+        up = keyboard.KeyboardEvent('down', 28, 'up')           # 上升
+        down = keyboard.KeyboardEvent('down', 28, 'down')       # 下降
+        left = keyboard.KeyboardEvent('down', 28, 'left')       # 左转
+        right = keyboard.KeyboardEvent('down', 28, 'right')     # 右转
+        k = keyboard.KeyboardEvent('down', 28, 'k')             # 获取控制
+        l = keyboard.KeyboardEvent('down', 28, 'l')             # 释放控制
+        if x.event_type == 'down' and x.name == w.name:
+            # 前进
+            self.client.moveByVelocityBodyFrameAsync(3, 0, 0, 0.5)
+            print("forward")
+        elif x.event_type == 'down' and x.name == s.name:
+            # 后退
+            self.client.moveByVelocityBodyFrameAsync(-3, 0, 0, 0.5)
+            print("back")
+        elif x.event_type == 'down' and x.name == a.name:
+            # 左移
+            self.client.moveByVelocityBodyFrameAsync(0, -2, 0, 0.5)
+            print("left")
+        elif x.event_type == 'down' and x.name == d.name:
+            # 右移
+            self.client.moveByVelocityBodyFrameAsync(0, 2, 0, 0.5)
+            print("right")
+        elif x.event_type == 'down' and x.name == up.name:
+            # 上升
+            self.client.moveByVelocityBodyFrameAsync(0, 0, -0.5, 0.5)
+            print("up")
+        elif x.event_type == 'down' and x.name == down.name:
+            # 下降
+            self.client.moveByVelocityBodyFrameAsync(0, 0, 0.5, 0.5)
+            print("down")
+        elif x.event_type == 'down' and x.name == left.name:
+            # 左转
+            self.client.rotateByYawRateAsync(-20, 0.5)
+            print("turn left")
+        elif x.event_type == 'down' and x.name == right.name:
+            # 右转
+            self.client.rotateByYawRateAsync(20, 0.5)
+            print("turn right")
+        elif x.event_type == 'down' and x.name == k.name:
+            # 无人机起飞
+            # get control
+            self.client.enableApiControl(True)
+            print("get control")
+            # unlock
+            self.client.armDisarm(True)
+            print("unlock")
+            # Async methods returns Future. Call join() to wait for task to complete.
+            self.client.takeoffAsync().join()
+            print("takeoff")
+        elif x.event_type == 'down' and x.name == l.name:
+            keyboard.wait("l")
+            keyboard.unhook_all()
+        else:
+            # 没有按下按键
+            self.client.moveByVelocityBodyFrameAsync(0, 0, 0, 0.5).join()
+            self.client.hoverAsync().join()  # 第四阶段：悬停6秒钟
+            print("hovering")
+
+
 
 
 if __name__ == '__main__':

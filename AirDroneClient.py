@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QApplication
+import keyboard
 
 import CarController
 import DroneController
@@ -34,6 +35,7 @@ class AirDroneClientWindow(QWidget):
 
     button_snow = QPushButton()
     button_exit = QPushButton()
+    button_keyboard = QPushButton()
 
     label_pos_x = QLabel()
     label_pos_y = QLabel()
@@ -98,13 +100,16 @@ class AirDroneClientWindow(QWidget):
         layout_tlp = QHBoxLayout()
         self.button_snow.setText("SnowTeleport")
         self.button_exit.setText("ExitApiControl")
+        self.button_keyboard.setText("EnableKeyboardControl")
 
         layout_tlp.addWidget(self.button_snow)
         layout_tlp.addWidget(self.button_exit)
+        layout_tlp.addWidget(self.button_keyboard)
+        layout_d.setSpacing(40)
 
         self.button_snow.clicked.connect(self.TeleportSnow)
         self.button_exit.clicked.connect(DroneController.dronecontrol.CloseAPI)
-
+        self.button_keyboard.clicked.connect(self.EnableKeyboard)
         # endregion
 
         # display widgets
@@ -226,6 +231,10 @@ class AirDroneClientWindow(QWidget):
 
     def TeleportSnow(self):
         DroneController.dronecontrol.SnowTeleport()
+
+    def EnableKeyboard(self):
+        keyboard.hook(DroneController.dronecontrol.KeyboardControl)
+        keyboard.wait()
 
 
 window = AirDroneClientWindow()
