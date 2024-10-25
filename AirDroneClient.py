@@ -2,7 +2,7 @@
 from dataclasses import dataclass
 
 from PyQt5.QtCore import *
-from PyQt5.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget, QApplication
+from PyQt5.QtWidgets import *
 import keyboard
 
 import CarController
@@ -36,6 +36,7 @@ class AirDroneClientWindow(QWidget):
     button_snow = QPushButton()
     button_exit = QPushButton()
     button_keyboard = QPushButton()
+    teleport_selection = QComboBox() # teleport selection
 
     label_pos_x = QLabel()
     label_pos_y = QLabel()
@@ -102,10 +103,14 @@ class AirDroneClientWindow(QWidget):
         self.button_exit.setText("ExitApiControl")
         self.button_keyboard.setText("EnableKeyboardControl")
 
-        layout_tlp.addWidget(self.button_snow)
+        layout_tlp.addWidget(self.teleport_selection)
         layout_tlp.addWidget(self.button_exit)
         layout_tlp.addWidget(self.button_keyboard)
         layout_d.setSpacing(40)
+
+        self.teleport_selection.addItems(["Snow","Overcast","Rain","Sand Storm", "Clear Sky","Fog"])
+        self.teleport_selection.currentIndexChanged.connect(self.Teleport_Map)
+        
 
         self.button_snow.clicked.connect(self.TeleportSnow)
         self.button_exit.clicked.connect(DroneController.dronecontrol.CloseAPI)
@@ -228,6 +233,27 @@ class AirDroneClientWindow(QWidget):
 
     def down(self):
         DroneController.dronecontrol.DroneMoveByTime(0, 0, veh.acc)
+
+    def Teleport_Map(self, i):
+        if i == 0:
+            #snow
+            DroneController.dronecontrol.SnowTeleport()
+        elif i == 1:
+            #Overcast
+            DroneController.dronecontrol.OvercastTeleport()
+        elif i == 2:
+            #Rain
+            DroneController.dronecontrol.RainTeleport()
+        elif i == 3:
+            #Sand
+            DroneController.dronecontrol.SandTeleport()
+        elif i == 4:
+            #clear
+            DroneController.dronecontrol.ClearTeleport()
+        elif i == 5:
+            #Fog
+            DroneController.dronecontrol.FogTeleport()
+        
 
     def TeleportSnow(self):
         DroneController.dronecontrol.SnowTeleport()

@@ -101,10 +101,41 @@ class Drone():
 
     def SnowTeleport(self):
         position = airsim.Vector3r(9.87236677 , -279.41862836, -22.81082173) # snow
-        # position = airsim.Vector3r(68.46729401 , 81.05318001, 60.85758088) # normal
         heading = airsim.utils.to_quaternion(0, 0, 0)
         pose = airsim.Pose(position, heading)
         self.client.simSetVehiclePose(pose, True)
+
+    def OvercastTeleport(self):
+        position = airsim.Vector3r(213.24547002 , -429.66393833, 19.260)
+        heading = airsim.utils.to_quaternion(0, 0, 0)
+        pose = airsim.Pose(position, heading)
+        self.client.simSetVehiclePose(pose, True)    
+
+    def RainTeleport(self):
+        position = airsim.Vector3r(-315.200 , -444.920, 12.520)
+        heading = airsim.utils.to_quaternion(0, 0, 0)
+        pose = airsim.Pose(position, heading)
+        self.client.simSetVehiclePose(pose, True)
+    
+    def SandTeleport(self):
+        position = airsim.Vector3r(-335.50020795 , 282.16650494, 19.50313758)
+        heading = airsim.utils.to_quaternion(0, 0, 0)
+        pose = airsim.Pose(position, heading)
+        self.client.simSetVehiclePose(pose, True)
+
+    def ClearTeleport(self):
+        position = airsim.Vector3r(-152.28332052 , 236.00371837, 66.40114393)
+        heading = airsim.utils.to_quaternion(0, 0, 0)
+        pose = airsim.Pose(position, heading)
+        self.client.simSetVehiclePose(pose, True)
+
+    def FogTeleport(self):
+        position = airsim.Vector3r(-430.39138328 , -91.7420777, 13.86624983)
+        heading = airsim.utils.to_quaternion(0, 0, 0)
+        pose = airsim.Pose(position, heading)
+        self.client.simSetVehiclePose(pose, True)
+
+
     def CloseAPI(self):
         self.client.enableApiControl(False)
 
