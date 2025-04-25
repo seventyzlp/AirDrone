@@ -140,14 +140,14 @@ class Drone():
         self.client.enableApiControl(False)
 
     def KeyboardControl(self,x):
-        w = keyboard.KeyboardEvent('down', 28, 'w')             # 前进
-        s = keyboard.KeyboardEvent('down', 28, 's')             # 后退
-        a = keyboard.KeyboardEvent('down', 28, 'a')             # 左移
-        d = keyboard.KeyboardEvent('down', 28, 'd')             # 右移
-        up = keyboard.KeyboardEvent('down', 28, 'up')           # 上升
-        down = keyboard.KeyboardEvent('down', 28, 'down')       # 下降
-        left = keyboard.KeyboardEvent('down', 28, 'left')       # 左转
-        right = keyboard.KeyboardEvent('down', 28, 'right')     # 右转
+        w = keyboard.KeyboardEvent('down', 150, 'w')             # 前进
+        s = keyboard.KeyboardEvent('down', 150, 's')             # 后退
+        a = keyboard.KeyboardEvent('down', 150, 'a')             # 左移
+        d = keyboard.KeyboardEvent('down', 150, 'd')             # 右移
+        up = keyboard.KeyboardEvent('down', 150, 'up')           # 上升
+        down = keyboard.KeyboardEvent('down', 150, 'down')       # 下降
+        left = keyboard.KeyboardEvent('down', 150, 'left')       # 左转
+        right = keyboard.KeyboardEvent('down', 150, 'right')     # 右转
         k = keyboard.KeyboardEvent('down', 28, 'k')             # 获取控制
         l = keyboard.KeyboardEvent('down', 28, 'l')             # 释放控制
         if x.event_type == 'down' and x.name == w.name:

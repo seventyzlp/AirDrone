@@ -25,6 +25,7 @@
     <Compile Include="AirDroneClient.py" />
     <Compile Include="CarController.py" />
     <Compile Include="DroneController.py" />
+    <Compile Include="FileConverter.py" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env\">

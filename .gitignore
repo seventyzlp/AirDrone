@@ -4,4 +4,5 @@
 
 /.vs/AirDroneClient
 /.idea
+/env
 *.pyc
