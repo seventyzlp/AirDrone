@@ -90,6 +90,7 @@ class Drone():
         State.linear_speed = math.sqrt(pow(State.l_v_x,2)+pow(State.l_v_y,2)+pow(State.l_v_z,2))
 
         return State
+
     def Hover(self):
         landed = self.client.getMultirotorState()
 
@@ -100,7 +101,7 @@ class Drone():
         self.client.reset()
 
     def SnowTeleport(self):
-        position = airsim.Vector3r(9.87236677 , -279.41862836, -22.81082173) # snow
+        position = airsim.Vector3r(9.87236677 , -279.41862836, -22.81082173) # snow XYZ 缩小一百倍 Z方向取反
         heading = airsim.utils.to_quaternion(0, 0, 0)
         pose = airsim.Pose(position, heading)
         self.client.simSetVehiclePose(pose, True)

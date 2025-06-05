@@ -5,263 +5,298 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 import keyboard
 
-import CarController
-import DroneController
-
+import DroneController  # 假设只需要无人机控制
 
 # mobile configuration
 @dataclass
 class Vehicle():
     acc = 1
-    vehicle_type = ''
-
+    vehicle_type = 'drone'  # 设置为无人机模式
 
 veh = Vehicle()
 
 # form application #
 app = QApplication(sys.argv)
 
-
 class AirDroneClientWindow(QWidget):
-    button_f = QPushButton()
-    button_b = QPushButton()
-    button_l = QPushButton()
-    button_r = QPushButton()
-
     button_takeoff = QPushButton()
     button_land = QPushButton()
     button_up = QPushButton()
     button_down = QPushButton()
-
-    button_snow = QPushButton()
-    button_exit = QPushButton()
+    
+    button_f = QPushButton()
+    button_b = QPushButton()
+    button_l = QPushButton()
+    button_r = QPushButton()
+    
+    button_weather = QPushButton()
+    button_task = QPushButton()
+    button_algorithm = QPushButton()
+    button_formation = QPushButton()
     button_keyboard = QPushButton()
-    teleport_selection = QComboBox() # teleport selection
-
-    label_pos_x = QLabel()
-    label_pos_y = QLabel()
-    label_pos_z = QLabel()
-    label_speed_l = QLabel()
-
-    label_rot_x = QLabel()
+    
+    weather_selection = QComboBox()
+    
+    label_gps_alt = QLabel()
+    label_gps_lat = QLabel()
+    label_gps_lon = QLabel()
+    label_rot_w = QLabel()
     label_rot_y = QLabel()
     label_rot_z = QLabel()
-    label_speed_a = QLabel()
+    label_speed = QLabel()
+    label_angle_speed = QLabel()
 
     refreshinfo = QTimer()
 
     def initUI(self):
+        self.resize(500, 400)  # 调整为更合适的尺寸
+        self.setWindowTitle("U21Data-2 Client")
 
-        self.resize(1280, 720)
-        self.setWindowTitle("AirDrone-Client")
+        #self.set_background()
 
-        # button
-        # region
-        self.button_f.setText("Move Forward")
-        self.button_b.setText("Move Backward")
-        self.button_l.setText("Move Left")
-        self.button_r.setText("Move Right")
+        self.setStyleSheet("""
+            #AirDroneClientWindow {
+                background-image: url(BG.png);
+                background-position: center;
+                background-repeat: no-repeat;
+                background-attachment: fixed;
+            }
+        """)
+        self.setObjectName("AirDroneClientWindow")  # 设置对象名称匹配选择器
+    
 
-        layout_b = QHBoxLayout()
-        layout_b.addWidget(self.button_f)
-        layout_b.addWidget(self.button_b)
-        layout_b.addWidget(self.button_l)
-        layout_b.addWidget(self.button_r)
-        layout_b.setSpacing(40)
+        self.setStyleSheet(self.styleSheet())
 
-        self.button_f.pressed.connect(self.forward)
-        self.button_b.pressed.connect(self.backward)
-        self.button_l.pressed.connect(self.left)
-        self.button_r.pressed.connect(self.right)
+        # 主垂直布局
+        main_layout = QVBoxLayout()
+        
+        # 添加Start Point部分
+        start_group = QGroupBox("Start Point")
+        start_layout = QHBoxLayout()
+    
+        self.button_weather = QPushButton("Weather")
+        self.weather_selection = QComboBox()
+        self.weather_selection.addItems(["Clear", "Rain", "Snow", "Fog", "Overcast"])
+    
+        for widget in [self.button_weather, self.weather_selection]:
+            widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+    
+        start_layout.addWidget(self.button_weather)
+        start_layout.addWidget(self.weather_selection)
+        start_group.setLayout(start_layout)
+        
+        # 添加功能按钮部分
+        func_group = QGroupBox("Functions")
+        func_layout = QHBoxLayout()
+    
+        self.button_keyboard = QPushButton("KeyboardControl")
 
-        self.button_f.released.connect(self.stop)
-        self.button_b.released.connect(self.backwardend)
-        self.button_l.released.connect(self.stop)
-        self.button_r.released.connect(self.stop)
+        #Task
+        self.task_combo = QComboBox()
+        self.task_combo.setEditable(True)  # 设置为可编辑
+        self.task_combo.lineEdit().setReadOnly(True)  # 设置行编辑为只读
+        self.task_combo.lineEdit().setAlignment(Qt.AlignCenter)  # 文字居中
+        self.task_combo.addItems(["Task 1", "Task 2", "Task 3"])
+        self.task_combo.setCurrentIndex(-1)  # 不选中任何项
+        self.task_combo.lineEdit().setPlaceholderText("Task")
 
-        # drone only
-        layout_d = QHBoxLayout()
-        self.button_takeoff.setText("Takeoff")
-        self.button_land.setText("Land")
-        self.button_up.setText("UP")
-        self.button_down.setText("Down")
+    
+        # 设置Algorithm下拉框选项
+        self.algorithm_combo = QComboBox()
+        self.algorithm_combo.setEditable(True)  # 设置为可编辑
+        self.algorithm_combo.lineEdit().setReadOnly(True)  # 设置行编辑为只读
+        self.algorithm_combo.lineEdit().setAlignment(Qt.AlignCenter)  # 文字居中
+        self.algorithm_combo.addItems(["Algorithm 1", "Algorithm 2", "Algorithm 3"])
+        self.algorithm_combo.setCurrentIndex(-1)  # 不选中任何项
+        self.algorithm_combo.lineEdit().setPlaceholderText("Algorithm")  # 设置占位文本
 
-        layout_d.addWidget(self.button_takeoff)
-        layout_d.addWidget(self.button_land)
-        layout_d.addWidget(self.button_up)
-        layout_d.addWidget(self.button_down)
-        layout_d.setSpacing(40)
+        # 设置Formation下拉框选项
+        self.formation_combo = QComboBox()
+        self.formation_combo.setEditable(True)
+        self.formation_combo.lineEdit().setReadOnly(True)
+        self.formation_combo.lineEdit().setAlignment(Qt.AlignCenter)
+        self.formation_combo.addItems(["Line Formation", "V Formation", "Square Formation", "Circle Formation"])
+        self.formation_combo.setCurrentIndex(-1)
+        self.formation_combo.lineEdit().setPlaceholderText("Formation")
+    
+        # 设置控件大小策略
+        for widget in [self.task_combo, self.algorithm_combo, 
+                       self.formation_combo, self.button_keyboard]:
+            widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+    
+        # 添加控件到布局
+        func_layout.addWidget(self.task_combo)
+        func_layout.addWidget(self.algorithm_combo)
+        func_layout.addWidget(self.formation_combo)
+        func_layout.addWidget(self.button_keyboard)
+        func_group.setLayout(func_layout)
+        
+        # 添加飞行控制部分
+        flight_group = QGroupBox("Flight Controls")
+        flight_layout = QVBoxLayout()
 
+        # 将Takeoff, Land, Up, Down四个按钮放在同一行
+        top_row_layout = QHBoxLayout()
+        self.button_takeoff = QPushButton("Takeoff")
+        self.button_land = QPushButton("Land")
+        self.button_up = QPushButton("Up")
+        self.button_down = QPushButton("Down")
+
+        # 设置按钮大小策略，使它们均匀分布
+        for button in [self.button_takeoff, self.button_land, 
+                       self.button_up, self.button_down]:
+            button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+
+        top_row_layout.addWidget(self.button_takeoff)
+        top_row_layout.addWidget(self.button_land)
+        top_row_layout.addWidget(self.button_up)
+        top_row_layout.addWidget(self.button_down)
+        top_row_layout.setSpacing(5)  # 设置按钮间距
+        
+        # 前后左右
+        move_layout = QGridLayout()
+        self.button_f = QPushButton("Move Forward")
+        self.button_b = QPushButton("Move Backward")
+        self.button_l = QPushButton("Move Left")
+        self.button_r = QPushButton("Move Right")
+        move_layout.addWidget(self.button_f, 0, 1)
+        move_layout.addWidget(self.button_b, 2, 1)
+        move_layout.addWidget(self.button_l, 1, 0)
+        move_layout.addWidget(self.button_r, 1, 2)
+
+        flight_layout.addLayout(top_row_layout)
+        flight_layout.addLayout(move_layout)
+        flight_group.setLayout(flight_layout)
+        
+        # 添加日志信息部分
+        log_group = QGroupBox("Log")
+        log_layout = QVBoxLayout()
+        self.label_gps_alt = QLabel("GPS Altitude: ")
+        self.label_gps_lat = QLabel("GPS Latitude: ")
+        self.label_gps_lon = QLabel("GPS Longitude: ")
+        self.label_rot_w = QLabel("Rotation w: ")
+        self.label_rot_y = QLabel("Rotation y: ")
+        self.label_rot_z = QLabel("Rotation z: ")
+        self.label_speed = QLabel("Linear Speed: ")
+        self.label_angle_speed = QLabel("Angle Speed: ")
+        
+        log_layout.addWidget(self.label_gps_alt)
+        log_layout.addWidget(self.label_gps_lat)
+        log_layout.addWidget(self.label_gps_lon)
+        log_layout.addWidget(self.label_rot_w)
+        log_layout.addWidget(self.label_rot_y)
+        log_layout.addWidget(self.label_rot_z)
+        log_layout.addWidget(self.label_speed)
+        log_layout.addWidget(self.label_angle_speed)
+        log_group.setLayout(log_layout)
+        
+        # 将所有组添加到主布局
+        main_layout.addWidget(start_group)
+        main_layout.addWidget(func_group)
+        main_layout.addWidget(flight_group)
+        main_layout.addWidget(log_group)
+        
+        self.setLayout(main_layout)
+        
+        # 连接信号槽
         self.button_takeoff.clicked.connect(DroneController.dronecontrol.TakeOff)
         self.button_land.clicked.connect(DroneController.dronecontrol.Landed)
         self.button_up.clicked.connect(self.up)
         self.button_down.clicked.connect(self.down)
-
-        # teleport API
-        layout_tlp = QHBoxLayout()
-        self.button_snow.setText("SnowTeleport")
-        self.button_exit.setText("ExitApiControl")
-        self.button_keyboard.setText("EnableKeyboardControl")
-
-        layout_tlp.addWidget(self.teleport_selection)
-        layout_tlp.addWidget(self.button_exit)
-        layout_tlp.addWidget(self.button_keyboard)
-        layout_d.setSpacing(40)
-
-        self.teleport_selection.addItems(["Snow","Overcast","Rain","Sand Storm", "Clear Sky","Fog"])
-        self.teleport_selection.currentIndexChanged.connect(self.Teleport_Map)
-        
-
-        self.button_snow.clicked.connect(self.TeleportSnow)
-        self.button_exit.clicked.connect(DroneController.dronecontrol.CloseAPI)
+        self.button_f.pressed.connect(self.forward)
+        self.button_b.pressed.connect(self.backward)
+        self.button_l.pressed.connect(self.left)
+        self.button_r.pressed.connect(self.right)
+        self.button_f.released.connect(self.stop)
+        self.button_b.released.connect(self.stop)
+        self.button_l.released.connect(self.stop)
+        self.button_r.released.connect(self.stop)
         self.button_keyboard.clicked.connect(self.EnableKeyboard)
-        # endregion
-
-        # display widgets
-        # region
-        layout_p = QVBoxLayout()
-        layout_p.addWidget(self.label_pos_x)
-        layout_p.addWidget(self.label_pos_y)
-        layout_p.addWidget(self.label_pos_z)
-        layout_p.addWidget(self.label_speed_l)
-
-        layout_r = QVBoxLayout()
-        layout_r.addWidget(self.label_rot_x)
-        layout_r.addWidget(self.label_rot_y)
-        layout_r.addWidget(self.label_rot_z)
-        layout_r.addWidget(self.label_speed_a)
-
-        widget_r = QWidget()
-        widget_r.setLayout(layout_r)
-        widget_p = QWidget()
-        widget_p.setLayout(layout_p)
-
-        layout_pr = QHBoxLayout()
-        layout_pr.addWidget(widget_p)
-        layout_pr.addWidget(widget_r)
-
-        # total layout
-        layout_t = QVBoxLayout()
-        widget_b = QWidget()
-        widget_b.setLayout(layout_b)
-        widget_pr = QWidget()
-        widget_pr.setLayout(layout_pr)
-        widget_d = QWidget()
-        widget_d.setLayout(layout_d)
-        widget_t = QWidget()
-        widget_t.setLayout(layout_tlp)
-
-        layout_t.addWidget(widget_pr)
-        layout_t.addStretch(1)
-        layout_t.addWidget(widget_d)
-        layout_t.addWidget(widget_b)
-        layout_t.addWidget(widget_t)
-
-        self.setLayout(layout_t)
-        # endregion
-
-        # auto refresh information
+        self.button_weather.clicked.connect(self.change_weather)
+        self.algorithm_combo.currentIndexChanged.connect(self.on_algorithm_changed)
+        self.formation_combo.currentIndexChanged.connect(self.on_formation_changed)
+        self.task_combo.currentIndexChanged.connect(self.on_task_changed)
+        
+        # 自动刷新信息
         self.refreshinfo.start(1000)
         self.refreshinfo.timeout.connect(self.setInfo)
 
         self.show()
 
-    # display & refresh information
     def setInfo(self):
-        if veh.vehicle_type == 'car':
-            self.label_pos_x.setText("position x: " + str(CarController.carcontrol.GetCarPose().pos_x))
-            self.label_pos_y.setText("position y: " + str(CarController.carcontrol.GetCarPose().pos_y))
-            self.label_pos_z.setText("position z: " + str(CarController.carcontrol.GetCarPose().pos_z))
+        self.label_gps_alt.setText("GPS Altitude: " + str(DroneController.dronecontrol.GetState().gps_pos_altitude))
+        self.label_gps_lat.setText("GPS Latitude: " + str(DroneController.dronecontrol.GetState().gps_pos_latitude))
+        self.label_gps_lon.setText("GPS Longitude: " + str(DroneController.dronecontrol.GetState().gps_pos_longitude))
+        
+        self.label_rot_w.setText("Rotation w: " + str(DroneController.dronecontrol.GetState().ori_x))
+        self.label_rot_y.setText("Rotation y: " + str(DroneController.dronecontrol.GetState().ori_y))
+        self.label_rot_z.setText("Rotation z: " + str(DroneController.dronecontrol.GetState().ori_z))
+        
+        self.label_speed.setText("Linear Speed: " + str(DroneController.dronecontrol.GetState().linear_speed))
+        self.label_angle_speed.setText("Angle Speed: " + str(DroneController.dronecontrol.GetState().a_v_x))
 
-            self.label_rot_x.setText("Rotation x: " + str(CarController.carcontrol.GetCarPose().rot_x))
-            self.label_rot_y.setText("Rotation y: " + str(CarController.carcontrol.GetCarPose().rot_y))
-            self.label_rot_z.setText("Rotation z: " + str(CarController.carcontrol.GetCarPose().rot_z))
-
-            self.label_speed_l.setText("Linear Speed: " + str(CarController.carcontrol.GetCarPose().speed_l))
-            self.label_speed_a.setText("Angle Speed: " + str(CarController.carcontrol.GetCarPose().speed_a))
-        else:
-            self.label_pos_x.setText("GPS Altitude: " + str(DroneController.dronecontrol.GetState().gps_pos_altitude))
-            self.label_pos_y.setText("GPS Latitude: " + str(DroneController.dronecontrol.GetState().gps_pos_latitude))
-            self.label_pos_z.setText("GPS Longitude: " + str(DroneController.dronecontrol.GetState().gps_pos_longitude))
-
-            self.label_rot_x.setText("Rotation W: " + str(DroneController.dronecontrol.GetState().ori_x))
-            self.label_rot_y.setText("Rotation y: " + str(DroneController.dronecontrol.GetState().ori_y))
-            self.label_rot_z.setText("Rotation z: " + str(DroneController.dronecontrol.GetState().ori_z))
-
-            self.label_speed_l.setText("Linear Speed: " + str(DroneController.dronecontrol.GetState().linear_speed))
-            self.label_speed_a.setText("Angle Speed: " + str(DroneController.dronecontrol.GetState().a_v_x))
-
-    # move function
+    # 移动功能
     def forward(self):
-        if veh.vehicle_type == 'car':
-            CarController.carcontrol.GoForward(veh.acc)
-        else:
-            DroneController.dronecontrol.DroneMoveByTime(veh.acc, 0, 0)
+        DroneController.dronecontrol.DroneMoveByTime(veh.acc, 0, 0)
 
     def backward(self):
-        if veh.vehicle_type == 'car':
-            CarController.carcontrol.GoBackwardStart(veh.acc)
-        else:
-            DroneController.dronecontrol.DroneMoveByTime(-veh.acc, 0, 0)
+        DroneController.dronecontrol.DroneMoveByTime(-veh.acc, 0, 0)
 
     def left(self):
-        if veh.vehicle_type == 'car':
-            CarController.carcontrol.Steer(veh.acc, -1)
-        else:
-            DroneController.dronecontrol.DroneMoveByTime(0, -veh.acc, 0)
+        DroneController.dronecontrol.DroneMoveByTime(0, -veh.acc, 0)
 
     def right(self):
-        if veh.vehicle_type == 'car':
-            CarController.carcontrol.Steer(veh.acc, 1)
-        else:
-            DroneController.dronecontrol.DroneMoveByTime(0, veh.acc, 0)
+        DroneController.dronecontrol.DroneMoveByTime(0, veh.acc, 0)
 
     def stop(self):
-        if veh.vehicle_type == 'car':
-            CarController.carcontrol.Stop()
-        else:
-            pass
-
-    def backwardend(self):
-        if veh.vehicle_type == 'car':
-            CarController.carcontrol.GoBackwardEnd()
-        else:
-            pass
+        pass
 
     def up(self):
         DroneController.dronecontrol.DroneMoveByTime(0, 0, -veh.acc)
 
     def down(self):
         DroneController.dronecontrol.DroneMoveByTime(0, 0, veh.acc)
-
-    def Teleport_Map(self, i):
-        if i == 0:
-            #snow
-            DroneController.dronecontrol.SnowTeleport()
-        elif i == 1:
-            #Overcast
-            DroneController.dronecontrol.OvercastTeleport()
-        elif i == 2:
-            #Rain
-            DroneController.dronecontrol.RainTeleport()
-        elif i == 3:
-            #Sand
-            DroneController.dronecontrol.SandTeleport()
-        elif i == 4:
-            #clear
-            DroneController.dronecontrol.ClearTeleport()
-        elif i == 5:
-            #Fog
-            DroneController.dronecontrol.FogTeleport()
         
+    def change_weather(self):
+        weather = self.weather_selection.currentText()
+        if weather == "Snow":
+            DroneController.dronecontrol.SnowTeleport()
+        elif weather == "Rain":
+            DroneController.dronecontrol.RainTeleport()
+        elif weather == "Fog":
+            DroneController.dronecontrol.FogTeleport()
+        elif weather == "Overcast":
+            DroneController.dronecontrol.OvercastTeleport()
+        else:  # Clear
+            DroneController.dronecontrol.ClearTeleport()
 
-    def TeleportSnow(self):
-        DroneController.dronecontrol.SnowTeleport()
+    def on_algorithm_changed(self, index):
+        """Algorithm下拉框选择变化时的处理"""
+        if index >= 0:  # 确保是有效选择
+            selected_algorithm = self.algorithm_combo.currentText()
+            print(f"Selected Algorithm: {selected_algorithm}")
+            # 这里添加实际算法选择的处理逻辑
+            # 例如: DroneController.select_algorithm(selected_algorithm)
+
+    def on_formation_changed(self, index):
+        """Formation下拉框选择变化时的处理"""
+        if index >= 0:  # 确保是有效选择
+            selected_formation = self.formation_combo.currentText()
+            print(f"Selected Formation: {selected_formation}")
+            # 这里添加实际队形选择的处理逻辑
+            # 例如: DroneController.set_formation(selected_formation)
+
+    def on_task_changed(self, index):
+        """Task下拉框选择变化时的处理"""
+        if index >= 0:  # 确保是有效选择
+            selected_task = self.task_combo.currentText()
+            print(f"Selected Task: {selected_task}")
+            # 这里添加实际任务选择的处理逻辑
+            # 例如: DroneController.select_task(selected_task)
 
     def EnableKeyboard(self):
         keyboard.hook(DroneController.dronecontrol.KeyboardControl)
         keyboard.wait()
-
 
 window = AirDroneClientWindow()
 window.initUI()
