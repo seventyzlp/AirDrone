@@ -203,7 +203,9 @@ class Drone():
             self.client.hoverAsync().join()  # µÚËÄ½×¶Î£ºĞüÍ£6ÃëÖÓ
             print("hovering")
 
-
+    def ReplayRoute():
+        # For route replay
+        pass
 
 
 if __name__ == '__main__':

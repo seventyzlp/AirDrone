@@ -26,6 +26,7 @@
     <Compile Include="CarController.py" />
     <Compile Include="DroneController.py" />
     <Compile Include="FileConverter.py" />
+    <Compile Include="SeqOutputer.py" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env\">

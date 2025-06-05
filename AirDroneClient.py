@@ -54,14 +54,6 @@ class AirDroneClientWindow(QWidget):
 
         #self.set_background()
 
-        self.setStyleSheet("""
-            #AirDroneClientWindow {
-                background-image: url(BG.png);
-                background-position: center;
-                background-repeat: no-repeat;
-                background-attachment: fixed;
-            }
-        """)
         self.setObjectName("AirDroneClientWindow")  # 设置对象名称匹配选择器
     
 
@@ -73,15 +65,28 @@ class AirDroneClientWindow(QWidget):
         # 添加Start Point部分
         start_group = QGroupBox("Start Point")
         start_layout = QHBoxLayout()
+
+        self.start_combo = QComboBox()
+        self.start_combo.setEditable(True)
+        self.start_combo.lineEdit().setReadOnly(True)
+        self.start_combo.lineEdit().setAlignment(Qt.AlignCenter)
+        self.start_combo.addItems(["9.8, -279, -22", "213, -429, 19","-315, -444, 12", "-335, 282, 19", "-152, 236, 66", "-430, -91, 13"])
+        self.start_combo.setCurrentIndex(-1)
+        self.start_combo.lineEdit().setPlaceholderText("StartPoint")
     
-        self.button_weather = QPushButton("Weather")
+
         self.weather_selection = QComboBox()
-        self.weather_selection.addItems(["Clear", "Rain", "Snow", "Fog", "Overcast"])
+        self.weather_selection.setEditable(True)
+        self.weather_selection.lineEdit().setReadOnly(True)
+        self.weather_selection.lineEdit().setAlignment(Qt.AlignCenter)
+        self.weather_selection.addItems(["Clear", "Rain", "Snow", "Fog", "Overcast","Sand"])
+        self.weather_selection.setCurrentIndex(-1)
+        self.weather_selection.lineEdit().setPlaceholderText("Weather")
     
-        for widget in [self.button_weather, self.weather_selection]:
+        for widget in [self.start_combo, self.weather_selection]:
             widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
     
-        start_layout.addWidget(self.button_weather)
+        start_layout.addWidget(self.start_combo)
         start_layout.addWidget(self.weather_selection)
         start_group.setLayout(start_layout)
         
@@ -89,7 +94,15 @@ class AirDroneClientWindow(QWidget):
         func_group = QGroupBox("Functions")
         func_layout = QHBoxLayout()
     
-        self.button_keyboard = QPushButton("KeyboardControl")
+        self.button_keyboard = QComboBox()
+        self.button_keyboard.setEditable(True)
+        self.button_keyboard.lineEdit().setReadOnly(True)
+        self.button_keyboard.lineEdit().setAlignment(Qt.AlignCenter)
+        self.button_keyboard.addItems(["Yes", "No"])
+        self.button_keyboard.setCurrentIndex(-1)
+        self.button_keyboard.lineEdit().setPlaceholderText("Task")
+
+
 
         #Task
         self.task_combo = QComboBox()
@@ -211,11 +224,12 @@ class AirDroneClientWindow(QWidget):
         self.button_b.released.connect(self.stop)
         self.button_l.released.connect(self.stop)
         self.button_r.released.connect(self.stop)
-        self.button_keyboard.clicked.connect(self.EnableKeyboard)
-        self.button_weather.clicked.connect(self.change_weather)
+        self.button_keyboard.currentIndexChanged.connect(self.EnableKeyboard)
+        self.weather_selection.currentIndexChanged.connect(self.change_weather)
         self.algorithm_combo.currentIndexChanged.connect(self.on_algorithm_changed)
         self.formation_combo.currentIndexChanged.connect(self.on_formation_changed)
         self.task_combo.currentIndexChanged.connect(self.on_task_changed)
+        self.start_combo.currentIndexChanged.connect(self.on_start_changed)
         
         # 自动刷新信息
         self.refreshinfo.start(1000)
@@ -257,42 +271,60 @@ class AirDroneClientWindow(QWidget):
     def down(self):
         DroneController.dronecontrol.DroneMoveByTime(0, 0, veh.acc)
         
-    def change_weather(self):
-        weather = self.weather_selection.currentText()
-        if weather == "Snow":
-            DroneController.dronecontrol.SnowTeleport()
-        elif weather == "Rain":
-            DroneController.dronecontrol.RainTeleport()
-        elif weather == "Fog":
-            DroneController.dronecontrol.FogTeleport()
-        elif weather == "Overcast":
-            DroneController.dronecontrol.OvercastTeleport()
-        else:  # Clear
-            DroneController.dronecontrol.ClearTeleport()
+    def change_weather(self, index):
+        if index >= 0:
+            weather = self.weather_selection.currentText()
+            if weather == "Snow":
+                DroneController.dronecontrol.SnowTeleport()
+            elif weather == "Rain":
+                DroneController.dronecontrol.RainTeleport()
+            elif weather == "Fog":
+                DroneController.dronecontrol.FogTeleport()
+            elif weather == "Overcast":
+                DroneController.dronecontrol.OvercastTeleport()
+            elif weather == "Clear":
+                DroneController.dronecontrol.ClearTeleport()
+            elif weather == "Sand":
+                DroneController.dronecontrol.SandTeleport()
 
     def on_algorithm_changed(self, index):
         """Algorithm下拉框选择变化时的处理"""
-        if index >= 0:  # 确保是有效选择
+        if index >= 0:
             selected_algorithm = self.algorithm_combo.currentText()
             print(f"Selected Algorithm: {selected_algorithm}")
-            # 这里添加实际算法选择的处理逻辑
-            # 例如: DroneController.select_algorithm(selected_algorithm)
+
 
     def on_formation_changed(self, index):
         """Formation下拉框选择变化时的处理"""
-        if index >= 0:  # 确保是有效选择
+        if index >= 0:
             selected_formation = self.formation_combo.currentText()
             print(f"Selected Formation: {selected_formation}")
-            # 这里添加实际队形选择的处理逻辑
-            # 例如: DroneController.set_formation(selected_formation)
+
 
     def on_task_changed(self, index):
         """Task下拉框选择变化时的处理"""
-        if index >= 0:  # 确保是有效选择
+        if index >= 0:
             selected_task = self.task_combo.currentText()
             print(f"Selected Task: {selected_task}")
-            # 这里添加实际任务选择的处理逻辑
-            # 例如: DroneController.select_task(selected_task)
+
+
+    def on_start_changed(self, index):
+        if index >= 0:
+            pos = self.start_combo.currentText()
+            if pos == "9.8, -279, -22":
+                DroneController.dronecontrol.SnowTeleport()
+            elif pos == "213, -429, 19":
+                DroneController.dronecontrol.OvercastTeleport()
+            elif pos == "-315, -444, 12":
+                DroneController.dronecontrol.RainTeleport()
+            elif pos == "-335, 282, 19":
+                DroneController.dronecontrol.SandTeleport()
+            elif pos == "-152, 236, 66":
+                DroneController.dronecontrol.ClearTeleport()
+            elif pos == "-430, -91, 13":
+                DroneController.dronecontrol.FogTeleport()
+            else:
+                print(self.start_combo.currentIndex())
 
     def EnableKeyboard(self):
         keyboard.hook(DroneController.dronecontrol.KeyboardControl)
