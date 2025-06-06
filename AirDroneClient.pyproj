@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>4e90b183-6758-4994-8334-cfa6a07c9508</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>AirDroneClient.py</StartupFile>
+    <StartupFile>DroneController.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>

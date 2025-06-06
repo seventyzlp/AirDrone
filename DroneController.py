@@ -1,7 +1,9 @@
+from multiprocessing import Value
 import airsim
 import time
 import math
 import keyboard
+import json
 
 class DroneInfo():
     gps_pos_altitude = 0
@@ -101,7 +103,7 @@ class Drone():
         self.client.reset()
 
     def SnowTeleport(self):
-        position = airsim.Vector3r(9.87236677 , -279.41862836, -22.81082173) # snow XYZ 缩小一百倍 Z方向取反
+        position = airsim.Vector3r(9.87236677 , -279.41862836, -22.81082173) # snow XYZ 0.01 -Z
         heading = airsim.utils.to_quaternion(0, 0, 0)
         pose = airsim.Pose(position, heading)
         self.client.simSetVehiclePose(pose, True)
@@ -141,50 +143,41 @@ class Drone():
         self.client.enableApiControl(False)
 
     def KeyboardControl(self,x):
-        w = keyboard.KeyboardEvent('down', 150, 'w')             # 前进
-        s = keyboard.KeyboardEvent('down', 150, 's')             # 后退
-        a = keyboard.KeyboardEvent('down', 150, 'a')             # 左移
-        d = keyboard.KeyboardEvent('down', 150, 'd')             # 右移
-        up = keyboard.KeyboardEvent('down', 150, 'up')           # 上升
-        down = keyboard.KeyboardEvent('down', 150, 'down')       # 下降
-        left = keyboard.KeyboardEvent('down', 150, 'left')       # 左转
-        right = keyboard.KeyboardEvent('down', 150, 'right')     # 右转
-        k = keyboard.KeyboardEvent('down', 28, 'k')             # 获取控制
-        l = keyboard.KeyboardEvent('down', 28, 'l')             # 释放控制
+        w = keyboard.KeyboardEvent('down', 150, 'w')             # forward
+        s = keyboard.KeyboardEvent('down', 150, 's')             # back
+        a = keyboard.KeyboardEvent('down', 150, 'a')             # left
+        d = keyboard.KeyboardEvent('down', 150, 'd')             # right
+        up = keyboard.KeyboardEvent('down', 150, 'up')           # up
+        down = keyboard.KeyboardEvent('down', 150, 'down')       # down
+        left = keyboard.KeyboardEvent('down', 150, 'left')       # left
+        right = keyboard.KeyboardEvent('down', 150, 'right')     # right
+        k = keyboard.KeyboardEvent('down', 28, 'k')             # get control
+        l = keyboard.KeyboardEvent('down', 28, 'l')             # release control
         if x.event_type == 'down' and x.name == w.name:
-            # 前进
             self.client.moveByVelocityBodyFrameAsync(3, 0, 0, 0.5)
             print("forward")
         elif x.event_type == 'down' and x.name == s.name:
-            # 后退
             self.client.moveByVelocityBodyFrameAsync(-3, 0, 0, 0.5)
             print("back")
         elif x.event_type == 'down' and x.name == a.name:
-            # 左移
             self.client.moveByVelocityBodyFrameAsync(0, -2, 0, 0.5)
             print("left")
         elif x.event_type == 'down' and x.name == d.name:
-            # 右移
             self.client.moveByVelocityBodyFrameAsync(0, 2, 0, 0.5)
             print("right")
         elif x.event_type == 'down' and x.name == up.name:
-            # 上升
             self.client.moveByVelocityBodyFrameAsync(0, 0, -0.5, 0.5)
             print("up")
         elif x.event_type == 'down' and x.name == down.name:
-            # 下降
             self.client.moveByVelocityBodyFrameAsync(0, 0, 0.5, 0.5)
             print("down")
         elif x.event_type == 'down' and x.name == left.name:
-            # 左转
             self.client.rotateByYawRateAsync(-20, 0.5)
             print("turn left")
         elif x.event_type == 'down' and x.name == right.name:
-            # 右转
             self.client.rotateByYawRateAsync(20, 0.5)
             print("turn right")
         elif x.event_type == 'down' and x.name == k.name:
-            # 无人机起飞
             # get control
             self.client.enableApiControl(True)
             print("get control")
@@ -198,19 +191,66 @@ class Drone():
             keyboard.wait("l")
             keyboard.unhook_all()
         else:
-            # 没有按下按键
             self.client.moveByVelocityBodyFrameAsync(0, 0, 0, 0.5).join()
-            self.client.hoverAsync().join()  # 第四阶段：悬停6秒钟
+            self.client.hoverAsync().join()
             print("hovering")
 
-    def ReplayRoute():
-        # For route replay
-        pass
+    def ReplayRoute(self):
+        with open('Route.json', 'r', encoding='utf-8') as file:
+            data = json.load(file)
 
+        location_x = data.get("Location.X", [])
+        location_y = data.get("Location.Y", [])
+        location_z = data.get("Location.Z", [])
+
+        # lerp
+        all_frames = set()
+        for arr in [location_x, location_y, location_z]:
+            all_frames.update([item["frame"] for item in arr])
+        all_frames = sorted(all_frames)
+
+        interp_x = interpolate_axis(location_x, all_frames)
+        interp_y = interpolate_axis(location_y, all_frames)
+        interp_z = interpolate_axis(location_z, all_frames)
+
+        for i in range(len(all_frames) - 1):
+            position = airsim.Vector3r(interp_x[i]/100, interp_y[i]/100, -interp_z[i]/100)
+            position_next = airsim.Vector3r(interp_x[i+1]/100, interp_y[i+1]/100, -interp_z[i+1]/100)
+            time = (all_frames[i+1] - all_frames[i]) / 30  # 30 FPS
+            speed = Calc_distance(position, position_next) / time if time > 0 else 1
+            print(position)
+            self.client.moveToPositionAsync(position.x_val, position.y_val, position.z_val, speed).join()
+
+
+def interpolate_axis(axis_list, target_frames):
+    if not axis_list:
+        return [0.0] * len(target_frames)
+    axis_list = sorted(axis_list, key=lambda x: x["frame"])
+    frames = [item["frame"] for item in axis_list]
+    values = [item["value"] for item in axis_list]
+    result = []
+    for f in target_frames:
+        if f <= frames[0]:
+            result.append(values[0])
+        elif f >= frames[-1]:
+            result.append(values[-1])
+        else:
+            for i in range(len(frames) - 1):
+                if frames[i] <= f <= frames[i+1]:
+                    t = (f - frames[i]) / (frames[i+1] - frames[i])
+                    v = values[i] + t * (values[i+1] - values[i])
+                    result.append(v)
+                    break
+    return result
+
+
+def Calc_distance(pos1, pos2):
+    return math.sqrt((pos1.x_val - pos2.x_val) ** 2 + (pos1.y_val - pos2.y_val) ** 2 + (pos1.z_val - pos2.z_val) ** 2)
 
 if __name__ == '__main__':
-    myDrone = Drone()
-    myDrone.SnowTeleport()
+    dronne = Drone()
+    # add sleep to make sure excute at same time
+    dronne.ReplayRoute()
 
 dronecontrol = Drone()
 
