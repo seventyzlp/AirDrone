@@ -21,7 +21,6 @@ def unreal_progress(tasks, label="进度", total=None):
 
 def main():
     # NOTE: 读取 sequence
-    unreal.log("Exported {0} to {1}".format(name, export_path))
     sequence = unreal.load_asset('/Game/RecSeq')
     # NOTE: 收集 sequence 里面所有的 binding
     binding_dict = defaultdict(list)
@@ -29,7 +28,7 @@ def main():
         binding_dict[binding.get_name()].append(binding)
 
     # NOTE: 遍历命名为 Face 的 binding
-    for binding in unreal_progress(binding_dict.get("BP_FlyingPawn", []), "Face"):
+    for binding in unreal_progress(binding_dict.get("BP_FlyingPawn", []), "Transform"):
         # NOTE: 获取关键帧 channel 数据
         keys_dict = {}
         for track in binding.get_tracks():
@@ -51,3 +50,4 @@ def main():
         with open(export_path, "w") as wf:
             json.dump(keys_dict, wf, indent=4)
         
+main()
